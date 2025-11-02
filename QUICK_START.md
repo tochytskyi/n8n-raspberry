@@ -43,6 +43,7 @@ docker compose logs -f
 | Command | Description |
 |---------|-------------|
 | `docker compose up -d` | Start all services |
+| `docker compose --profile ngrok up -d` | Start with ngrok |
 | `docker compose stop` | Stop all services |
 | `docker compose restart` | Restart all services |
 | `docker compose logs -f` | View logs (follow mode) |
@@ -54,8 +55,45 @@ docker compose logs -f
 
 - **Local:** http://localhost:5678
 - **Network:** http://<raspberry-pi-ip>:5678
+- **Internet (via ngrok):** https://your-ngrok-url.ngrok-free.app
 
 Find your IP: `hostname -I`
+
+## ngrok Setup (Expose to Internet)
+
+**Quick Start:**
+
+1. **Get ngrok token:**
+   - Sign up at https://ngrok.com
+   - Get token from https://dashboard.ngrok.com/get-started/your-authtoken
+
+2. **Add to `.env`:**
+   ```bash
+   NGROK_AUTHTOKEN=your_token_here
+   ```
+
+3. **Start ngrok:**
+   ```bash
+   docker compose --profile ngrok up -d
+   ```
+
+4. **Get public URL:**
+   - Dashboard: http://localhost:4040
+   - Or: `curl http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'`
+
+5. **Update webhook URL in `.env`:**
+   ```bash
+   WEBHOOK_URL=https://your-ngrok-url.ngrok-free.app
+   docker compose restart n8n
+   ```
+
+**Useful Commands:**
+- View ngrok status: `docker compose ps ngrok`
+- View ngrok logs: `docker compose logs ngrok`
+- Stop ngrok: `docker compose --profile ngrok stop ngrok`
+- Dashboard: http://localhost:4040
+
+**Note:** Free tier URLs change on restart. Use static domain (paid plan) for persistent URLs.
 
 ## Backup
 
@@ -110,6 +148,8 @@ n8n/
 - [ ] Generated `N8N_ENCRYPTION_KEY` (32+ chars)
 - [ ] Updated `WEBHOOK_URL` if accessing from network
 - [ ] Firewall configured (if exposing to network)
+- [ ] Added `NGROK_AUTHTOKEN` if using ngrok
+- [ ] Updated `WEBHOOK_URL` with ngrok URL after starting tunnel
 
 ## Resources
 

@@ -128,6 +128,128 @@ Login with the credentials set in `.env`:
 - Username: Value of `N8N_BASIC_AUTH_USER` (default: `admin`)
 - Password: Value of `N8N_BASIC_AUTH_PASSWORD`
 
+## ngrok Setup (Expose n8n to Internet)
+
+ngrok allows you to expose your n8n instance to the internet, enabling external webhook access and remote management.
+
+### Prerequisites
+
+1. **Create ngrok Account**: Sign up at [https://ngrok.com](https://ngrok.com) (free tier available)
+2. **Get Auth Token**: 
+   - Go to [https://dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
+   - Copy your authtoken
+
+### Configuration
+
+1. **Add ngrok Token to `.env`**:
+   ```bash
+   NGROK_AUTHTOKEN=your_ngrok_auth_token_here
+   ```
+
+2. **Optional Settings** (in `.env`):
+   ```bash
+   # Static domain (requires paid ngrok plan)
+   NGROK_DOMAIN=your-static-domain.ngrok-free.app
+   
+   # Region selection (us, eu, ap, au, sa, jp, in)
+   NGROK_REGION=us
+   
+   # ngrok web interface port
+   NGROK_WEB_PORT=4040
+   ```
+
+### Start ngrok Service
+
+Start all services including ngrok:
+
+```bash
+# Start with ngrok profile
+docker compose --profile ngrok up -d
+
+# Or start normally, then start ngrok separately
+docker compose up -d
+docker compose --profile ngrok up -d ngrok
+```
+
+### Get Your Public URL
+
+**Option 1: ngrok Dashboard (Recommended)**
+- Access the ngrok dashboard: `http://localhost:4040`
+- Find your public HTTPS URL (e.g., `https://abc123.ngrok-free.app`)
+
+**Option 2: ngrok API**
+```bash
+curl http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+```
+
+**Option 3: ngrok Logs**
+```bash
+docker compose logs ngrok
+```
+
+### Update Webhook URL
+
+After getting your ngrok URL, update `WEBHOOK_URL` in `.env`:
+
+```bash
+# For free tier (URL changes on restart)
+WEBHOOK_URL=https://abc123.ngrok-free.app
+
+# For paid tier with static domain
+WEBHOOK_URL=https://your-static-domain.ngrok-free.app
+```
+
+Then restart n8n to apply the change:
+
+```bash
+docker compose restart n8n
+```
+
+### Access n8n via ngrok
+
+You can now access n8n from anywhere:
+
+```
+https://your-ngrok-url.ngrok-free.app
+```
+
+**Note**: ngrok free tier shows an interstitial warning page on first access. Users need to click "Visit Site" to proceed.
+
+### ngrok Management
+
+**View ngrok Status**:
+```bash
+docker compose ps ngrok
+docker compose logs ngrok
+```
+
+**Stop ngrok**:
+```bash
+docker compose --profile ngrok stop ngrok
+```
+
+**Restart ngrok**:
+```bash
+docker compose --profile ngrok restart ngrok
+```
+
+### Troubleshooting ngrok
+
+**ngrok not starting**:
+- Verify `NGROK_AUTHTOKEN` is set correctly in `.env`
+- Check logs: `docker compose logs ngrok`
+- Ensure n8n service is running: `docker compose ps n8n`
+
+**Can't access ngrok URL**:
+- Verify ngrok is running: `docker compose ps ngrok`
+- Check ngrok dashboard for errors: `http://localhost:4040`
+- Ensure firewall allows outbound connections
+
+**URL changes on restart (Free Tier)**:
+- This is normal for ngrok free tier
+- Consider upgrading to paid plan for static domains
+- Or use ngrok API to dynamically update webhook URLs
+
 ## Management Commands
 
 ### View Logs
@@ -255,6 +377,7 @@ docker compose ps
 ```bash
 docker compose logs n8n
 docker compose logs postgres
+docker compose logs ngrok
 ```
 
 ### Check Disk Space

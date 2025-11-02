@@ -86,6 +86,28 @@ services:
     networks:
       - n8n_network
 
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: n8n_ngrok
+    restart: unless-stopped
+    command:
+      - "http"
+      - "n8n:5678"
+      - "--authtoken=${NGROK_AUTHTOKEN}"
+      - "--region=${NGROK_REGION:-us}"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+      NGROK_REGION: ${NGROK_REGION:-us}
+      NGROK_DOMAIN: ${NGROK_DOMAIN:-}
+    ports:
+      - "${NGROK_WEB_PORT:-4040}:4040"
+    depends_on:
+      - n8n
+    networks:
+      - n8n_network
+    profiles:
+      - ngrok
+
 volumes:
   postgres_data:
     driver: local
