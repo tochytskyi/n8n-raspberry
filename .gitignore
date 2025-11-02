@@ -1,0 +1,20 @@
+# Environment variables (contains sensitive data)
+.env
+
+# Backup files
+*.sql
+*.sql.gz
+*.tar.gz
+backup_*
+*_backup_*
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
